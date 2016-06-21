@@ -1,0 +1,8 @@
+#!/usr/bin/env php
+<?php
+require __DIR__.'/../bootstrap.php';
+use Symfony\Component\Console\Application;
+$application = new Application();
+$application->add(new RedmineOnBoarding\Console\Setup($app_config));
+$application->add(new RedmineOnBoarding\Console\CreateUser($app_config));
+$application->run();

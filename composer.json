@@ -1,0 +1,23 @@
+{
+  "name": "tarunjangra/redmine-on-boarding",
+  "description": "Allocate onboarding tickets to new team mates",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Tarun Jangra",
+      "email": "tarun@izap.in"
+    }
+  ],
+  "minimum-stability": "alpha",
+  "require": {
+    "php": ">=5.4",
+    "symfony/console": "2.6",
+    "kbsali/redmine-api":"1.5.7"
+  },
+  "autoload": {
+    "psr-0": {
+      "RedmineOnBoarding": "src/",
+      "RedmineOnBoarding\\Tests": "tests/"
+    }
+  }
+}

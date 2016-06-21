@@ -1,0 +1,9 @@
+.DS_Store
+.idea
+/composer.lock
+/config/*
+/vendor/*
+/database/*
+cache.properties
+composer.lock
+composer.phar
