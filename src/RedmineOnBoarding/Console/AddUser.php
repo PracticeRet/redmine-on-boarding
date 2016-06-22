@@ -12,7 +12,7 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 
 
 
-class CreateUser extends Command
+class AddUser extends Command
 {
   private $config = null;
 
@@ -28,16 +28,8 @@ class CreateUser extends Command
 
   protected function execute(InputInterface $input, OutputInterface $output) {
 
+
     $helper = $this->getHelper('question');
-    $question = new ChoiceQuestion(
-        'Choose engineer type (defaults to Backend Engineer)',
-        array('Backend Engineer', 'Frontend Engineer', 'Quality Analyst'),
-        0
-    );
-    $question->setErrorMessage('Engineer type "%s" is invalid.');
-
-    $type = $helper->ask($input, $output, $question);
-
 
     $passQuestion = new Question('Enter password: ');
     $passQuestion->setHidden(true);
@@ -50,21 +42,26 @@ class CreateUser extends Command
     $lname = $helper->ask($input, $output, new Question('Enter last name: '));
     $email = $helper->ask($input, $output, new Question('Enter email: '));
 
-    $rclient = new Client($this->config->redmine_url, $this->config->redmine_api);
-    $routput = $rclient->user->create([
-      "login" => $login,
-      "mail" => $email,
-      "firstname" => $fname,
-      "lastname" => $lname,
-      "password" => $password
-    ]);
-    if($routput->error){
-      $output->writeln("<error>{$routput->error}</error>");
-    }elseif($routput->id){
-      $output->writeln('<info>User Created:</info>');
-      $output->writeln("<info>ID: {$routput->id}</info>");
-      $output->writeln("<info>Login Name: {$routput->login}</info>");
-    }
 
+    $output->writeln("<comment>Creating user....</comment>");
+
+    $rclient = new Client($this->config->redmine_url, $this->config->redmine_api);
+
+    $userarray = [
+        "login" => $login,
+        "mail" => $email,
+        "firstname" => $fname,
+        "lastname" => $lname,
+        "password" => $password
+    ];
+    $redmine_user = $rclient->user->create($userarray);
+
+    if($redmine_user->error){
+      $output->writeln("<error>{$redmine_user->error}</error>");
+    }elseif($redmine_user->id){
+      $output->writeln('<info>User Created:</info>');
+      $output->writeln("<info>Login Name = {$redmine_user->login}</info>");
+      $output->writeln("<info>Login Password = {$password}</info>");
+    }
   }
 }
