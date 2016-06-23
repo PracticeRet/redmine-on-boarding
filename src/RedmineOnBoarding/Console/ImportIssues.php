@@ -39,8 +39,6 @@ class ImportIssues extends Command
     }
 
 
-
-
     $helper = $this->getHelper('question');
     $defaultEngineer = 0;
     foreach($this->config->engineer_types as $issueindex => $issue) {
@@ -57,9 +55,8 @@ class ImportIssues extends Command
     $question->setErrorMessage('Engineer type "%s" is invalid.');
     $engineerIndex = array_search($helper->ask($input, $output, $question),$engineers);
 
+    $login = $input->getOption('login'); ;
 
-
-    $login = $input->getOption('login');
     $rclient = new Client($this->config->redmine_url, $this->config->redmine_api);
     $login_user_id = $rclient->user->getIdByUsername($login);
 
@@ -95,14 +92,14 @@ class ImportIssues extends Command
             $this->config->engineer_role[$assigned_to_username]:
             "Developer";
         $rclient->membership->create($project_id,array(
-            'user_id' => $issueArr['assigned_to_id'],
+            'user_id' => $issuesArr['assigned_to_id'],
             'role_ids' => [$rclient->role->listing()[$role]]
         ));
-        $eissue = $rclient->issue->create($issueArr);
+        $eissue = $rclient->issue->create($issuesArr);
         if($eissue->id) {
-          $output->writeln("<info>Success: {$issueArr['subject']}</info>");
+          $output->writeln("<info>Success: {$issuesArr['subject']}</info>");
         }else {
-          $output->writeln("<error>Failed: {$issueArr['subject']}</error>");
+          $output->writeln("<error>Failed: {$issuesArr['subject']}</error>");
         }
       }
 
