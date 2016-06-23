@@ -39,15 +39,37 @@ class Config
 
   public function setup() {
     $dir_permissions = 0700;
-    if (!is_dir($this->app_root . 'database')) {
-      mkdir($this->app_root . 'database', $dir_permissions, true);
+    if (!is_dir($this->app_root . 'assets')) {
+      mkdir($this->app_root . 'assets', $dir_permissions, true);
+    }
+    if (!is_dir($this->app_root . 'config')) {
+      mkdir($this->app_root . 'config', $dir_permissions, true);
+    }
+
+    if (!file_exists($this->app_root . 'assets/common.csv')) {
+      $data = '"subject","assign_to_login","is_private","description"'."\n";
+      $data .= '"As a user do this task","hr","yes","issue description will go here"';
+      file_put_contents($this->app_root . 'assets/common.csv', $data);
+    }
+
+    if (!file_exists($this->app_root . 'assets/backend-engineer.csv')) {
+      $data = '"subject","assign_to_login","is_private","description"'."\n";
+      $data .= '"As a developer, Read all git tutorial define in wiki","","","issue description"';
+      file_put_contents($this->app_root . 'assets/backend-engineer.csv', $data);
     }
 
     if (!file_exists($this->app_root . 'config/main.json')) {
-      mkdir($this->app_root . 'config', $dir_permissions);
       $data = '{
-"app_name":"RedmineOnBoarding",
-"project_identifire":"induction"
+  "app_name":"RedmineOnBoarding",
+  "redmine_api": "xxxxxxxxxx",
+  "redmine_url": "http://your-redmine-site.com",
+  "redmine_project_name": "project name",
+  "redmine_tracker": "Feature",
+  "redmine_status": "New",
+  "engineer_types": [
+    {"type":"Backend Engineer","file":"backend-engineer.csv", "default": true}
+  ],
+  "engineer_role":{"dinesh":"Manager","narinderk":"Manager","tarunjangra":"Manager","hr":"Manager"}
 }';
       file_put_contents($this->app_root . 'config/main.json', $data);
     }
