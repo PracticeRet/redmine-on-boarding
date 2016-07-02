@@ -16,6 +16,7 @@ use League\Csv\Reader;
 class ImportIssues extends Command
 {
   private $config = null;
+  private $limit = 200;
 
   public function __construct(&$config) {
     parent::__construct();
@@ -55,15 +56,13 @@ class ImportIssues extends Command
     $question->setErrorMessage('Engineer type "%s" is invalid.');
     $engineerIndex = array_search($helper->ask($input, $output, $question),$engineers);
 
-    $login = $input->getOption('login'); ;
-
+    $login = $input->getOption('login');
     $rclient = new Client($this->config->redmine_url, $this->config->redmine_api);
-    $login_user_id = $rclient->user->getIdByUsername($login);
-
+    $login_user_id = $rclient->user->getIdByUsername($login,['limit' => $this->limit]);
     $redmine_user_array = $rclient->user->show($login_user_id);
 
     if(!$redmine_user_array['user']['id']){
-      $output->writeln("<error>Given username is not existing.</error>");
+      $output->writeln("<error>Given username is not available.</error>");
     }else {
 
       $output->writeln("<comment>Importing induction stories....</comment>");
@@ -79,10 +78,10 @@ class ImportIssues extends Command
       $ereader = Reader::createFromPath($this->config->app_root."assets/{$this->config->engineer_types[$engineerIndex]['file']}");
       foreach ($ereader as $index => $erow) {
         $assigned_to_username = (!empty($erow[1]))?$erow[1]:$login;
-        $issuesArr = [
+        $issue = [
             'project_id'  => $project_id,
-            'subject'     => (empty($erow[1]))?$erow[0]:"For {$fname} {$lname} ($login): ".$erow[0],
-            'assigned_to_id' => $rclient->user->getIdByUsername($assigned_to_username,['limit'=>100]),
+            'subject'     => sprintf($erow[0],"{$fname} {$lname}"),
+            'assigned_to_id' => $rclient->user->getIdByUsername($assigned_to_username,['limit'=>$this->limit]),
             'tracker_id' => $tracker_id,
             'description' => $erow[3],
             'status' => $status_id,
@@ -91,15 +90,24 @@ class ImportIssues extends Command
         $role = isset($this->config->engineer_role[$assigned_to_username])?
             $this->config->engineer_role[$assigned_to_username]:
             "Developer";
-        $rclient->membership->create($project_id,array(
-            'user_id' => $issuesArr['assigned_to_id'],
-            'role_ids' => [$rclient->role->listing()[$role]]
-        ));
-        $eissue = $rclient->issue->create($issuesArr);
+
+        //if debug enable.
+        if(true){
+          $eissue = new \stdClass();
+          $eissue->id = true;
+          print_r($issue);
+        }else{
+          $rclient->membership->create($project_id, array(
+              'user_id' => $issue['assigned_to_id'],
+              'role_ids' => [$rclient->role->listing()[$role]]
+          ));
+          $eissue = $rclient->issue->create($issue);
+        }
+
         if($eissue->id) {
-          $output->writeln("<info>Success: {$issuesArr['subject']}</info>");
+          $output->writeln("<info>Success: {$issue['subject']}</info>");
         }else {
-          $output->writeln("<error>Failed: {$issuesArr['subject']}</error>");
+          $output->writeln("<error>Failed: {$issue['subject']}</error>");
         }
       }
 
@@ -110,9 +118,9 @@ class ImportIssues extends Command
         $assigned_to_username = (!empty($crow[1]))?$crow[1]:$login;
         $issueArr=[
             'project_id'  => $project_id,
-            'subject'     => (empty($crow[1]))?$crow[0]:"For {$fname} {$lname} ($login): ".$crow[0],
+            'subject'     => sprintf($crow[0],"{$fname} {$lname}"),
             'description' => $crow[3],
-            'assigned_to_id' => $rclient->user->getIdByUsername($assigned_to_username,['limit'=>100]),
+            'assigned_to_id' => $rclient->user->getIdByUsername($assigned_to_username,['limit'=>$this->limit]),
             'tracker_id' => $tracker_id,
             'status' => $status_id,
             'is_private' => ($crow[2]=='yes'?true:false)
@@ -120,11 +128,15 @@ class ImportIssues extends Command
         $role = isset($this->config->engineer_role[$assigned_to_username])?
             $this->config->engineer_role[$assigned_to_username]:
             "Developer";
+
+
         $rclient->membership->create($project_id,array(
             'user_id' => $issueArr['assigned_to_id'],
             'role_ids' => [$rclient->role->listing()[$role]]
         ));
         $cissue = $rclient->issue->create($issueArr);
+
+
         if($cissue->id) {
           $output->writeln("<info>Success: {$issueArr['subject']}</info>");
         }else {
