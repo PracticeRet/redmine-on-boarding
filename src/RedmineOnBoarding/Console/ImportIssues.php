@@ -25,7 +25,7 @@ class ImportIssues extends Command
 
   protected function configure() {
     $this->setName('import')
-    ->setDescription("Add new user in your redmine app.")
+    ->setDescription("Import induction stories in issue Redmin application.")
         ->addOption(
             'login',
             null,
@@ -91,18 +91,12 @@ class ImportIssues extends Command
             $this->config->engineer_role[$assigned_to_username]:
             "Developer";
 
-        //if debug enable.
-        if(true){
-          $eissue = new \stdClass();
-          $eissue->id = true;
-          print_r($issue);
-        }else{
+
           $rclient->membership->create($project_id, array(
               'user_id' => $issue['assigned_to_id'],
               'role_ids' => [$rclient->role->listing()[$role]]
           ));
           $eissue = $rclient->issue->create($issue);
-        }
 
         if($eissue->id) {
           $output->writeln("<info>Success: {$issue['subject']}</info>");
