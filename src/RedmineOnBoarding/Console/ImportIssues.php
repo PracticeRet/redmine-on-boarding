@@ -83,7 +83,7 @@ class ImportIssues extends Command
             'subject'     => sprintf($erow[0],"{$fname} {$lname}"),
             'assigned_to_id' => $rclient->user->getIdByUsername($assigned_to_username,['limit'=>$this->limit]),
             'tracker_id' => $tracker_id,
-            'description' => $erow[3],
+            'description' => isset($erow[3])?$erow[3]:'',
             'status' => $status_id,
             'is_private' => ($erow[2]=='yes'?true:false)
         ];
@@ -113,7 +113,7 @@ class ImportIssues extends Command
         $issueArr=[
             'project_id'  => $project_id,
             'subject'     => sprintf($crow[0],"{$fname} {$lname}"),
-            'description' => $crow[3],
+            'description' => isset($crow[3])?$crow[3]:'',
             'assigned_to_id' => $rclient->user->getIdByUsername($assigned_to_username,['limit'=>$this->limit]),
             'tracker_id' => $tracker_id,
             'status' => $status_id,
